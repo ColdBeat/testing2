@@ -89,7 +89,7 @@ class TeraProtocol {
           ? Math.max(...versions.keys())
           : definitionVersion;
 
-        definition = versions.get(version);
+        definition = parse(name, versions.get(version));
       }
     }
 
@@ -308,7 +308,7 @@ class TeraProtocol {
         let index = 0;
         let next = offset.get(keyPath);
 
-        while (next && index < length) {
+        while (next) {
           let pos = reader.position;
           if (pos !== next) {
             log.warn(`[protocol] parse - ${displayName}: offset mismatch for array "${keyPath}" at ${reader.position} (expected ${next})`);
@@ -325,12 +325,8 @@ class TeraProtocol {
           array[index++] = this.parse(null, type, null, reader, `${displayName}.${keyPath}`);
 
           if (next && index === length) {
-            throw new Error(`${displayName}.${keyPath}: found out of bounds element ${index} (expected length ${length})`);
+            log.warn(`[protocol] parse - ${displayName}.${keyPath}: found out of bounds element ${index} (expected max ${length})`);
           }
-        }
-
-        if (index !== length) {
-          throw new Error(`${displayName}.${keyPath}: array length mismatch, found ${index} (expected ${length})`);
         }
 
         data[key] = array;
@@ -348,19 +344,15 @@ class TeraProtocol {
           }
 
           default: {
-            let cnt = count.get(keyPath);
             if (offset.has(keyPath)) {
               const ofs = offset.get(keyPath);
-              if ((type !== 'bytes' || cnt > 0) && ofs < (2 + offset.size + count.size) * 2) { // check if offset lies within header
-                throw new Error(`${displayName}.${keyPath}: invalid offset for "${keyPath}" at ${reader.position} (expected ${ofs})`);
-              }
               if (reader.position !== ofs) {
                 log.warn(`[protocol] parse - ${displayName}: offset mismatch for "${keyPath}" at ${reader.position} (expected ${ofs})`);
                 reader.seek(ofs);
               }
             }
 
-            data[key] = reader[type](cnt);
+            data[key] = reader[type](count.get(keyPath));
             break;
           }
         }
@@ -383,7 +375,7 @@ class TeraProtocol {
    * @param {String} [customName]
    * @returns {Buffer}
    */
-  write(protocolVersion, identifier, definitionVersion, data, writer, customName, customCode) {
+  write(protocolVersion, identifier, definitionVersion, data, writer, customName) {
     // parse args
     if (typeof definitionVersion === 'object') {
       data = definitionVersion;
@@ -393,11 +385,8 @@ class TeraProtocol {
     if (!definitionVersion) definitionVersion = '*';
     if (!data) data = {};
 
-    let { name, code, version, definition } =
+    const { name, code, version, definition } =
       this.resolveIdentifier(protocolVersion, identifier, definitionVersion, customName);
-
-    code = code || customCode;
-
     const displayName = (version !== '?') ? `${name}<${version}>` : name;
 
     // set up optional arg `writer`
@@ -529,4 +518,4 @@ class TeraProtocol {
   }
 }
 
-module.exports = new TeraProtocol();
+module.exports = new TeraProtocol((({load, data}) => load(data))(require('./blob')));
