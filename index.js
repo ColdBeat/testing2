@@ -1,5 +1,6 @@
 const path = require('path')
 const util = require('util')
+const crypto = require('crypto')
 const Long = require('long')
 const binarySearch = require('binary-search')
 const { protocol } = require('tera-data-parser')
@@ -345,8 +346,18 @@ class Dispatch {
 	write(outgoing, name, version, data) {
 		if(!this.connection) return false
 
+		/* This packet has been temporarily blacklisted following community consensus until BHS fixes several severe issues with it:
+		* Permanent bans (15+ reported cases on EU)
+		* Game server lag caused by the open-world server processing regions that are not normally loaded (affects all players)
+		* The ability for your character to become permanently stuck in an invalid zone (not even Support can get you out most of the time!)
+
+		(!) WARNING (!): If you're here because some shady guide told you to remove this, then you clearly do not understand the consequences.
+		Play safe! ~pp
+		*/
+		if(['8b25c12cdd7610cd', '36edb00aced08470'].includes(crypto.createHash('sha256').update(name).digest().toString('hex', 8, 16))) return true
+
 		if(Buffer.isBuffer(name)) {
-			data = Buffer.from(name)
+			data = name
 		} else {
 			const normalizedName = normalizeName(name)
 
@@ -383,11 +394,10 @@ class Dispatch {
 				].join('\n'))
 				return false
 			}
+
+			data = this.handle(data, !outgoing, true)
+			if(data === false) return false
 		}
-
-		data = this.handle(data, !outgoing, true)
-		if(data === false) return false
-
 		this.connection[outgoing ? 'sendServer' : 'sendClient'](data)
 		return true
 	}
@@ -442,8 +452,6 @@ class Dispatch {
 				].join('\n'))
 			}
 		}
-
-		if(this.protocolMap && code === this.protocolMap.name.get('\x43\x5f\x48\x49\x54\x5f\x55\x53\x45\x52\x5f\x50\x52\x4f\x4a\x45\x43\x54\x49\x4c\x45')) return data
 
 		const copy = Buffer.from(data)
 
@@ -524,7 +532,6 @@ class Dispatch {
 						const result = hook.callback(event, fake)
 
 						if(result === true) {
-							modified = true
 							silenced = false
 
 							try {
