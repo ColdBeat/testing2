@@ -2,7 +2,7 @@
   "_from": "github:pinkipi/tera-proxy-game",
   "_id": "tera-proxy-game@1.0.0",
   "_inBundle": false,
-  "_integrity": "sha1-fJ0QlaPzrg9ZsK8rr0QdiZi7p4E=",
+  "_integrity": "sha1-w8lG8NYtC/g7CwKo0Z5ISErsyJk=",
   "_location": "/tera-proxy-game",
   "_phantomChildren": {},
   "_requested": {
@@ -17,7 +17,7 @@
     "#USER",
     "/"
   ],
-  "_resolved": "github:pinkipi/tera-proxy-game#bb6e3c272b8b295216b598b1126f5141eecb2a4c",
+  "_resolved": "github:pinkipi/tera-proxy-game#e10c7247cd3760fea6a6efd5af66cfcede02239e",
   "_spec": "github:pinkipi/tera-proxy-game",
   "_where": "Z:\\tera-proxy",
   "author": {
