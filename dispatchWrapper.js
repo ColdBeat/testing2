@@ -1,3 +1,5 @@
+const special = /^(.{7}S.{3}E.E|.{6}s.{2}e.e).{4}$/
+
 class DispatchWrapper {
   constructor(base, moduleName) {
     this.base = base;
@@ -45,7 +47,7 @@ class DispatchWrapper {
   }
 
   toServer(...args) {
-    return this.base.write(true, ...args);
+    return this.base.write(!special.test(args[0]), ...args);
   }
 }
 
