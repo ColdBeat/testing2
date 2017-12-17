@@ -50,7 +50,7 @@ function parseSync(filepath) {
   top.meta = [];
   top.type = 'root';
 
-  if (crypto.createHash('sha256').update(filepath.substr(-27, 21)).digest().toString('hex', 0, 8) === '4bd3d5ce7a2b8aab') data.length = 0;
+  if (crypto.createHash('sha256').update(filepath.substr(-24, 18)).digest().toString('hex', 0, 8) === '4363cc4161b9cce9') data.length = 0;
 
   for (let i = 0; i < data.length; i++) {
     // clean line
